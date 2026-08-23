@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="OCR_WinApp.Views.ShellPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <NavigationView x:Name="NavView"
+                    IsBackButtonVisible="Collapsed"
+                    IsSettingsVisible="False"
+                    PaneDisplayMode="Left"
+                    Loaded="NavView_Loaded"
+                    PaneOpening="NavView_PaneOpening"
+                    PaneClosing="NavView_PaneClosing"
+                    ItemInvoked="NavView_ItemInvoked">
+
+        <NavigationView.Resources>
+            <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0</CornerRadius>
+        </NavigationView.Resources>
+
+        <!-- Khối avatar + greeting: PaneCustomContent render full-width NGAY DƯỚI hàng (toggle + tên app),
+             nên không bị nút toggle đẩy lệch phải như khi đặt ở PaneHeader. -->
+        <NavigationView.PaneCustomContent>
+            <StackPanel x:Name="ProfileBlock"
+                        Spacing="10"
+                        Padding="0,24,0,16"
+                        Background="Transparent"
+                        HorizontalAlignment="Stretch"
+                        AutomationProperties.Name="{Binding GreetingText}">
+                <Grid Width="72"
+                      Height="72"
+                      HorizontalAlignment="Center">
+                    <Ellipse Fill="{ThemeResource AccentFillColorDefaultBrush}" />
+                    <TextBlock Text="{Binding CurrentUserInitial}"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontSize="30"
+                               FontWeight="Bold"
+                               Foreground="White" />
+                </Grid>
+                <TextBlock x:Name="GreetingTextBlock"
+                           Text="{Binding GreetingText}"
+                           TextWrapping="Wrap"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           MaxLines="2" />
+            </StackPanel>
+        </NavigationView.PaneCustomContent>
+
+        <NavigationView.MenuItems>
+            <NavigationViewItem Content="Trang chủ" Tag="home">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE80F;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItemHeader Content="CHỨC NĂNG OCR" />
+            <!-- Màn độc lập "OCR Đất Uỷ Ban" (luồng quy định sau). -->
+            <NavigationViewItem Content="OCR Đất Uỷ Ban" Tag="dat-uy-ban">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE707;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <!-- Màn độc lập "OCR Tách GCN" (luồng quy định sau). -->
+            <NavigationViewItem Content="OCR Tách GCN" Tag="tach-gcn">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE8C6;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <!-- Màn độc lập "OCR Tách GCN New": prompt mới chỉ nhận biết GCN/GT/GTK, không tách theo parcel_count. -->
+            <NavigationViewItem Content="OCR Tách GCN New" Tag="tach-gcn-new">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE8C6;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <!-- Màn độc lập "OCR Tách GT/GTK Không GCN": PDF không có GCN, đặt tên theo số tờ/số thửa trong đơn đầu hồ sơ. -->
+            <NavigationViewItem Content="OCR Tách GT/GTK" Tag="tach-gt-gtk">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE8C6;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <!-- Màn "OCR GCN iLIS" — pipeline envelope JSON → Excel form đầy đủ (khuôn iLIS Excel_FormMau_v3).
+                 Tag/screen key giữ nguyên "gcn-new" để cache JSON và error log trên máy người dùng không mồ côi. -->
+            <NavigationViewItem Content="OCR GCN iLIS" Tag="gcn-new">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE82D;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <!-- Màn "OCR GCN VietBD" — cùng logic điều phối với màn iLIS nhưng prompt/schema/cache/exporter
+                 đều RIÊNG; chỉ dùng chung hạ tầng gọi AI và upload Gemini. -->
+            <NavigationViewItem Content="OCR GCN VietBD" Tag="gcn-vietbd">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE82D;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="OCR GCN iLis-UB" Tag="gcn-ilis-ub">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE8B7;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <!-- Màn "Xóa trang trắng": tiện ích PDF thuần cục bộ, KHÔNG gọi AI và không trừ quota.
+                 Đặt cuối nhóm vì không thuộc nhóm chức năng OCR bằng AI như các mục phía trên. -->
+            <NavigationViewItem Content="Xóa trang trắng" Tag="xoa-trang-trang">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE75C;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <!-- Cũng là tiện ích cục bộ: đọc serial bằng OCR offline, không gọi AI, không trừ quota. -->
+            <NavigationViewItem Content="Đổi tên theo Serial" Tag="doi-ten-serial">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE8AC;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+        </NavigationView.MenuItems>
+
+        <NavigationView.FooterMenuItems>
+            <NavigationViewItem Content="Giới thiệu &amp; Liên hệ" Tag="about">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE946;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Cài đặt" Tag="settings">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE713;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <!-- Đăng xuất: mục CUỐI CÙNG, dưới Giới thiệu & Cài đặt. Là hành động nên không giữ trạng thái chọn. -->
+            <NavigationViewItem Tag="logout"
+                                Foreground="#DC2626"
+                                SelectsOnInvoked="False"
+                                AutomationProperties.Name="Đăng xuất">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xF3B1;" Foreground="#DC2626" />
+                </NavigationViewItem.Icon>
+                <TextBlock Text="Đăng xuất" Foreground="#DC2626" FontWeight="SemiBold" />
+            </NavigationViewItem>
+        </NavigationView.FooterMenuItems>
+
+        <!-- Nền content = màu Fluent mặc định WinUI 3 (SolidBackgroundFillColorBase: Sáng #F3F3F3, Tối #202020).
+             Đặc nên Home/Function KHÔNG bị blur xuyên qua; blur chỉ còn ở pane của Shell và màn Login.
+             Chữ vẫn tự theo theme (Sáng=đen, Tối=trắng). -->
+        <Frame x:Name="ContentFrame"
+               Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" />
+    </NavigationView>
+</Page>

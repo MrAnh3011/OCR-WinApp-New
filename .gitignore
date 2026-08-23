@@ -1,0 +1,14 @@
+/.agents
+/.claude
+/.superpowers
+/.tmp
+**/.vs/
+/OCR WinApp/.vs/
+**/bin/
+**/obj/
+/AGENTS.md
+/CLAUDE.md
+/docs
+/PROJECT_MAP.md
+/Installer
+OCR WinApp/OCR.Business/ai-provider.local.json

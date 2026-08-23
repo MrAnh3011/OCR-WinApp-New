@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Cùng lý do với project App: WinUI 3 chưa hỗ trợ Native AOT, pattern field vẫn an toàn. -->
+    <NoWarn>$(NoWarn);MVVMTK0045</NoWarn>
+    <!-- Chạy unpackaged: bật auto-initializer của Windows App SDK để DispatcherQueue nạp được. -->
+    <WindowsPackageType>None</WindowsPackageType>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ViewModel tầng App dùng ObservableObject/RelayCommand và DispatcherQueue. -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OCR.Business\OCR.Business.csproj" />
+    <Compile Include="..\OCR WinApp\Services\FolderFileEnumerator.cs" Link="Services\FolderFileEnumerator.cs" />
+    <Compile Include="..\OCR WinApp\ViewModels\SplitRunState.cs" Link="ViewModels\SplitRunState.cs" />
+
+    <!-- Tối thiểu cần để biên dịch GcnNewViewModel, để test chạy ĐỦ LUỒNG StartAsync qua gọi hàm. -->
+    <Compile Include="..\OCR WinApp\Services\IErrorLogService.cs" Link="Services\IErrorLogService.cs" />
+    <Compile Include="..\OCR WinApp\Services\IFolderPickerService.cs" Link="Services\IFolderPickerService.cs" />
+    <Compile Include="..\OCR WinApp\Services\ISplitCachePromptService.cs" Link="Services\ISplitCachePromptService.cs" />
+    <Compile Include="..\OCR WinApp\Services\IMaXaPromptService.cs" Link="Services\IMaXaPromptService.cs" />
+    <Compile Include="..\OCR WinApp\Services\UserFacingError.cs" Link="Services\UserFacingError.cs" />
+    <Compile Include="..\OCR WinApp\Services\FailedSourceFileExporter.cs" Link="Services\FailedSourceFileExporter.cs" />
+    <Compile Include="..\OCR WinApp\ViewModels\SelectedFile.cs" Link="ViewModels\SelectedFile.cs" />
+    <Compile Include="..\OCR WinApp\ViewModels\GcnNewViewModel.cs" Link="ViewModels\GcnNewViewModel.cs" />
+    <!-- Màn Việt Bản Đồ: copy riêng của GcnNewViewModel, chỉ khác exporter/template/screen key. -->
+    <Compile Include="..\OCR WinApp\ViewModels\GcnVietBdViewModel.cs" Link="ViewModels\GcnVietBdViewModel.cs" />
+    <!-- Màn OCR GCN iLis-UB: copy riêng của GcnNewViewModel, khác bộ lọc file đầu vào và nhánh Export. -->
+    <Compile Include="..\OCR WinApp\ViewModels\GcnIlisUbViewModel.cs" Link="ViewModels\GcnIlisUbViewModel.cs" />
+
+    <!-- Hai ViewModel còn lại: cùng phụ thuộc các Services/ViewModels tối thiểu đã link ở trên,
+         không cần kéo thêm file App nào khác để biên dịch. -->
+    <Compile Include="..\OCR WinApp\ViewModels\TachGcnViewModel.cs" Link="ViewModels\TachGcnViewModel.cs" />
+    <Compile Include="..\OCR WinApp\ViewModels\DatUyBanViewModel.cs" Link="ViewModels\DatUyBanViewModel.cs" />
+
+    <!-- Màn "Xóa trang trắng": không dùng AI/quota nên chỉ cần các Services tối thiểu đã link ở trên. -->
+    <Compile Include="..\OCR WinApp\ViewModels\XoaTrangTrangViewModel.cs" Link="ViewModels\XoaTrangTrangViewModel.cs" />
+
+    <!-- Màn "Đổi tên theo Serial": không dùng AI/quota nên chỉ cần các Services tối thiểu đã link ở trên. -->
+    <Compile Include="..\OCR WinApp\ViewModels\DoiTenSerialViewModel.cs" Link="ViewModels\DoiTenSerialViewModel.cs" />
+  </ItemGroup>
+
+</Project>

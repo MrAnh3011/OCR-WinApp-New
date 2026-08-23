@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Obfuscator>
+  <!-- __INPATH__ / __OUTPATH__ được build_installer.ps1 thay bằng đường dẫn tuyệt đối. -->
+  <Var name="InPath"  value="__INPATH__" />
+  <Var name="OutPath" value="__OUTPATH__" />
+  <Var name="ExtraFrameworkFolders" value="__FWDIRS__" />
+
+  <!-- Hai assembly → PHẢI giữ public API (app gọi qua interface/Options/Models).
+       Chỉ đổi tên internal/private + ẩn chuỗi (HideStrings an toàn runtime: giải mã khi chạy). -->
+  <Var name="KeepPublicApi"    value="true"  />
+  <Var name="HidePrivateApi"   value="true"  />
+  <Var name="HideStrings"      value="true"  />
+  <Var name="UseUnicodeNames"  value="true"  />
+  <Var name="RenameFields"     value="true"  />
+  <Var name="RenameProperties" value="false" />
+  <Var name="RenameMethods"    value="true"  />
+  <Var name="RenameEvents"     value="true"  />
+  <Var name="OptimizeMethods"  value="false" />
+  <Var name="SuppressIldasm"   value="true"  />
+  <Var name="RegenerateDebugInfo" value="false" />
+
+  <Module file="$(InPath)\OCR.Business.dll" />
+</Obfuscator>

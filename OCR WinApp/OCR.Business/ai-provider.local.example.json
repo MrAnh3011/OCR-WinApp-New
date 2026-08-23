@@ -1,0 +1,17 @@
+{
+  "ActiveProfile": "google-main",
+  "Profiles": {
+    "google-main": {
+      "Provider": "google-ai-studio",
+      "Url": "https://generativelanguage.googleapis.com/v1beta",
+      "ApiKey": "",
+      "Model": "gemini-2.5-pro"
+    },
+    "openrouter-main": {
+      "Provider": "openrouter",
+      "Url": "https://openrouter.ai/api/v1",
+      "ApiKey": "",
+      "Model": "google/gemini-2.5-pro"
+    }
+  }
+}

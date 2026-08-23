@@ -1,0 +1,63 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>OCR.Business</RootNamespace>
+    <AssemblyName>OCR.Business</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Platforms>x86;x64;ARM64</Platforms>
+    <AiProviderConfigFile Condition="'$(AiProviderConfigFile)' == ''">$(MSBuildProjectDirectory)\ai-provider.local.json</AiProviderConfigFile>
+    <GeneratedAiProviderSecretFile>$(MSBuildProjectDirectory)\obj\$(Configuration)\$(TargetFramework)\GeneratedAiProviderSecret.g.cs</GeneratedAiProviderSecretFile>
+  </PropertyGroup>
+
+  <!-- Release: bỏ symbol/PDB, tối ưu IL (hardening trước khi obfuscate + đóng gói installer). -->
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.104.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+    <!-- Cắt PDF theo khoảng trang cho pipeline Tách GCN. -->
+    <PackageReference Include="PdfSharp" Version="6.1.1" />
+    <!-- Bảo mật: HardwareId (WMI) + DPAPI mã hoá dữ liệu cục bộ. -->
+    <PackageReference Include="System.Management" Version="8.0.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>OCR.Business.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="ai-provider.local.json" />
+    <Content Remove="ai-provider.local.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Prompt cho pipeline Đất Uỷ Ban (Mẫu số 15). -->
+    <EmbeddedResource Include="UyBan\prompt_uyban.md" />
+    <!-- Prompt cho pipeline Tách GCN. -->
+    <EmbeddedResource Include="Split\prompt_split_gcn.md" />
+    <EmbeddedResource Include="Split\prompt_split_gcn_new.md" />
+    <EmbeddedResource Include="Split\prompt_split_gcn_no_gcn.md" />
+    <!-- Prompt cho pipeline OCR GCN iLIS. -->
+    <EmbeddedResource Include="NewGcn\PROMPT_TRICH_XUAT_GCN.md" />
+    <!-- Prompt RIÊNG cho pipeline OCR GCN VietBD (không dùng chung với iLIS). -->
+    <EmbeddedResource Include="VietBdGcn\PROMPT_TRICH_XUAT_GCN_VIETBD.md" />
+  </ItemGroup>
+
+  <Target Name="GenerateAiProviderSecret" BeforeTargets="CoreCompile">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\Build\GenerateAiProviderSecret.ps1&quot; -ConfigPath &quot;$(AiProviderConfigFile)&quot; -OutputPath &quot;$(GeneratedAiProviderSecretFile)&quot;" />
+    <ItemGroup>
+      <Compile Include="$(GeneratedAiProviderSecretFile)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

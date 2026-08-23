@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="OCR_WinApp.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer>
+        <StackPanel Padding="32" Spacing="16" MaxWidth="800" HorizontalAlignment="Left">
+            <TextBlock Text="Cài đặt" Style="{ThemeResource TitleLargeTextBlockStyle}" />
+
+            <TextBlock Text="Giao diện" Style="{ThemeResource SubtitleTextBlockStyle}" />
+            <ComboBox Header="Giao diện hiển thị" Width="240"
+                      SelectedIndex="{x:Bind ViewModel.SelectedThemeIndex, Mode=TwoWay}">
+                <ComboBoxItem Content="Theo hệ thống" />
+                <ComboBoxItem Content="Sáng" />
+                <ComboBoxItem Content="Tối" />
+            </ComboBox>
+
+            <TextBlock Text="OCR" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,12,0,0" />
+            <TextBlock Text="Ngôn ngữ OCR mặc định: Tiếng Việt (vi)"
+                       Style="{ThemeResource BodyTextBlockStyle}" />
+        </StackPanel>
+    </ScrollViewer>
+</Page>

@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "OCR WinApp (Unpackaged)": {
+      "commandName": "Project"
+    },
+    "OCR WinApp (Package)": {
+      "commandName": "MsixPackage"
+    }
+  }
+}

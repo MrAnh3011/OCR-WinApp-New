@@ -1,0 +1,9 @@
+{
+  "_comment": "Quy tac gop/doi ten file kem theo khi Export man OCR GCN iLis-UB.",
+  "_huongDan": "So khop KHONG phan biet hoa-thuong va DA BO DAU tieng Viet, vi du tu khoa 'don dang ky' se khop ten file 'Don dang ky.pdf' va 'DON DANG KY.PDF'. Them phan tu vao Groups la co them loai file {nhan}-XXX.pdf. Thu tu tu khoa trong Keywords chinh la thu tu trang khi gop. Keywords de rong thi nhom do khong bao gio khop va khong sinh ra file gop nao.",
+  "GcnKeyword": "GCN",
+  "Groups": [
+    { "Suffix": "GT", "Keywords": [ "NVTC", "PC" ] },
+    { "Suffix": "GTK", "Keywords": [ "GTK" ] }
+  ]
+}

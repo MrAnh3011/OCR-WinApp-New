@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Obfuscator>
+  <!-- __INPATH__ / __OUTPATH__ được build_installer.ps1 thay bằng đường dẫn tuyệt đối. -->
+  <Var name="InPath"  value="__INPATH__" />
+  <Var name="OutPath" value="__OUTPATH__" />
+  <Var name="ExtraFrameworkFolders" value="__FWDIRS__" />
+
+  <!-- WinUI 3: CHẾ ĐỘ AN TOÀN. Giữ public API (Views/ViewModels/Models cho x:Bind/XAML),
+       chỉ đổi tên internal/private + ẩn chuỗi + chặn ILDASM. KHÔNG đổi tên property (x:Bind). -->
+  <Var name="KeepPublicApi"    value="true"  />
+  <Var name="HidePrivateApi"   value="true"  />
+  <Var name="HideStrings"      value="true"  />
+  <Var name="UseUnicodeNames"  value="true"  />
+  <Var name="RenameFields"     value="true"  />
+  <Var name="RenameProperties" value="false" />
+  <Var name="RenameMethods"    value="true"  />
+  <Var name="RenameEvents"     value="false" />
+  <Var name="OptimizeMethods"  value="false" />
+  <Var name="SuppressIldasm"   value="true"  />
+  <Var name="RegenerateDebugInfo" value="false" />
+
+  <Module file="$(InPath)\OCR WinApp.dll">
+    <!-- An toàn tuyệt đối cho XAML codegen: bỏ qua App + toàn bộ Views (x:Class, InitializeComponent). -->
+    <SkipNamespace name="OCR_WinApp.Views" />
+    <SkipType name="OCR_WinApp.App" />
+    <!-- Ẩn chuỗi có thể vướng resource URI / reflection ở tầng App; bỏ qua để an toàn. -->
+    <SkipStringHiding type="OCR_WinApp.App" />
+  </Module>
+</Obfuscator>

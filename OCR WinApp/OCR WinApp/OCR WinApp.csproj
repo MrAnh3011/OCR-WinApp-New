@@ -1,0 +1,125 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>OCR_WinApp</RootNamespace>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Icon EXE theo flavor (mặc định Sapphire = Flavor hiện tại trong appsettings).
+         Build flavor khác: dotnet build -p:Flavor=Green (kèm sửa Flavor trong appsettings.json). -->
+    <Flavor Condition="'$(Flavor)'==''">Sapphire</Flavor>
+    <ApplicationIcon>Assets\$(Flavor)\icon.ico</ApplicationIcon>
+    <Platforms>x86;x64;ARM64</Platforms>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+    <PublishProfile>win-$(Platform).pubxml</PublishProfile>
+    <UseWinUI>true</UseWinUI>
+    <WinUISDKReferences>false</WinUISDKReferences>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <Nullable>enable</Nullable>
+    <!-- Chỉ copy satellite resource cho tiếng Anh/tiếng Việt, tránh sinh hàng chục thư mục ngôn ngữ không dùng trong Debug/Release/Publish. -->
+    <SatelliteResourceLanguages>en;vi</SatelliteResourceLanguages>
+    <!-- Chạy KHÔNG đóng gói MSIX (tránh Smart App Control chặn khi dev). Bỏ dòng này khi phát hành Store. -->
+    <WindowsPackageType>None</WindowsPackageType>
+    <!-- Bundle Windows App SDK runtime vào app để chạy unpackaged không cần cài runtime hệ thống. -->
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <!--
+      MVVMTK0045: CommunityToolkit.Mvvm khuyến nghị partial property cho Native AOT (WinRT marshalling).
+      WinUI 3 hiện CHƯA hỗ trợ Native AOT; pattern field [ObservableProperty] vẫn an toàn với trimming
+      nhờ annotation của toolkit. Tắt cảnh báo này; cân nhắc chuyển partial property khi WinUI hỗ trợ AOT.
+    -->
+    <NoWarn>$(NoWarn);MVVMTK0045</NoWarn>
+  </PropertyGroup>
+
+  <!-- Release: bỏ symbol/PDB, tối ưu IL (hardening trước khi obfuscate + đóng gói installer). -->
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Manifest Include="$(ApplicationManifest)" />
+  </ItemGroup>
+
+  <!--
+    Defining the "Msix" ProjectCapability here allows the Single-project MSIX Packaging
+    Tools extension to be activated for this project even if the Windows App SDK Nuget
+    package has not yet been restored.
+  -->
+  <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+    <ProjectCapability Include="Msix" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.1839" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OCR.Business\OCR.Business.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Cấu hình GIAO DIỆN: App sở hữu (chỉ mục Appearance/Flavor), đọc bởi Services/BrandService.cs. -->
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- Cấu hình NGHIỆP VỤ (api/url/model/ocr): do OCR.Business SỞ HỮU. App chỉ LINK để deploy ra cạnh exe;
+         mọi việc đọc/parse nằm ở OCR.Business (Configuration/AppSettingsLoader.cs). -->
+    <Content Include="..\OCR.Business\appsettings.business.json" Link="appsettings.business.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- Quy tắc gộp/đổi tên của màn OCR GCN iLis-UB. Phải khai ĐÍCH DANH mới được copy ra output;
+         setup.iss đóng gói cả thư mục publish nên không cần khai thêm ở đó. -->
+    <Content Include="..\OCR.Business\IlisUb\gcn-ilis-ub-rules.json" Link="gcn-ilis-ub-rules.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- Template Excel mẫu cho Đất Uỷ Ban / OCR GCN iLIS, copy giữ nguyên cấu trúc thư mục. -->
+    <Content Include="Assets\Temp\Excel_FormMau_v3.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- Template Excel của màn OCR GCN Việt Bản Đồ (khuôn khác hẳn iLIS). -->
+    <Content Include="Assets\Temp\Excel_Template_VietBD.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!-- Media theo từng flavor (icon.ico/icon.png/banner.png). Copy ra output để ms-appx + AppWindow.SetIcon truy cập. -->
+  <ItemGroup>
+    <Content Include="Assets\Green\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Sapphire\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!--
+    Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution
+    Explorer "Package and Publish" context menu entry to be enabled for this project even if
+    the Windows App SDK Nuget package has not yet been restored.
+  -->
+  <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+    <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
+  </PropertyGroup>
+
+  <!-- Publish Properties -->
+  <PropertyGroup>
+    <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
+    <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
+    <!-- WinUI + reflection-based System.Text.Json + ClosedXML/PdfSharp are not trim-safe here. -->
+    <PublishTrimmed>False</PublishTrimmed>
+  </PropertyGroup>
+
+  <Target Name="PruneUnusedLanguageFolders" AfterTargets="Build;Publish">
+    <Exec
+      Condition="'$(OS)' == 'Windows_NT'"
+      Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;$roots = @(&apos;$(TargetDir)&apos;, &apos;$(PublishDir)&apos;) | Where-Object { $_ -and (Test-Path -LiteralPath $_) }; foreach ($root in $roots) { Get-ChildItem -LiteralPath $root -Directory | Where-Object { $_.Name -match &apos;^[a-z]{2,3}(-[A-Za-z0-9]{2,8}){0,2}$&apos; -and $_.Name -notmatch &apos;^(en|vi)(-|$)&apos; } | Remove-Item -Recurse -Force }&quot;" />
+  </Target>
+</Project>
