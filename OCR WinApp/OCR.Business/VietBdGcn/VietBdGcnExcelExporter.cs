@@ -44,7 +44,9 @@ public sealed class VietBdGcnExcelExporter : IVietBdGcnExcelExporter
 
     private static readonly Regex DatePattern = new(@"^\d{1,2}/\d{1,2}/\d{4}$", RegexOptions.Compiled);
 
-    public int Write(IEnumerable<VietBdGcnEnvelope> envelopes, string outputPath, string templatePath, string? maXa = null)
+    public int Write(
+        IEnumerable<VietBdGcnEnvelope> envelopes, string outputPath, string templatePath, string? maXa = null,
+        Func<VietBdGcnEnvelope, string>? resolveTenFile = null)
     {
         // Mã xã do người dùng nhập một lần cho cả lô, LUÔN đè lên mọi thứ đọc được (giấy không in mã xã
         // của thửa đất nên OCR không bao giờ có giá trị này).
@@ -64,12 +66,19 @@ public sealed class VietBdGcnExcelExporter : IVietBdGcnExcelExporter
 
         WriteExtraColumnHeaders(ws);
 
+        // Cột D (DDK_ngayTiepNhan) = NGÀY CHẠY export, giống nhau cho mọi dòng của cùng một lần Xuất —
+        // chốt MỘT LẦN ở đây, không gọi lại DateTime.Now cho từng dòng.
+        var ngayChay = DateTime.Now.ToString("dd/MM/yyyy");
+
         // Ghi tuần tự, KHÔNG dò ô trống như màn iLIS: mỗi thửa ở đây sinh nhiều dòng liên tiếp nên
         // con trỏ dòng tự tăng là đủ và rẻ hơn nhiều lần quét lại lưới.
         int row = FirstDataRow;
         int stt = 1;
         foreach (var env in envelopes)
-            WriteEnvelope(ws, env, maXaValue, ref row, ref stt);
+        {
+            var tenFile = resolveTenFile is not null ? resolveTenFile(env) : env.ten_file;
+            WriteEnvelope(ws, env, maXaValue, tenFile, ngayChay, ref row, ref stt);
+        }
 
         int rowsWritten = row - FirstDataRow;
         if (rowsWritten > 0) ws.Rows(FirstDataRow, row - 1).Style.Alignment.WrapText = true;
@@ -94,7 +103,9 @@ public sealed class VietBdGcnExcelExporter : IVietBdGcnExcelExporter
         ws.Cell(3, ColThayDoi).Value = "Những thay đổi sau khi cấp GCN";
     }
 
-    private static void WriteEnvelope(IXLWorksheet ws, VietBdGcnEnvelope envelope, string maXa, ref int row, ref int stt)
+    private static void WriteEnvelope(
+        IXLWorksheet ws, VietBdGcnEnvelope envelope, string maXa, string tenFile, string ngayChay,
+        ref int row, ref int stt)
     {
         var info = envelope.thong_tin_gcn;
         var parcels = envelope.danh_sach_dong ?? new List<VietBdGcnRow>();
@@ -126,7 +137,7 @@ public sealed class VietBdGcnExcelExporter : IVietBdGcnExcelExporter
             {
                 foreach (var (chu, vo) in ownerBlocks)
                 {
-                    WriteRow(ws, row, stt, info, parcel, mdsd, chu, vo, isVoChong, isDongSuDung, envelope.ten_file, maXa);
+                    WriteRow(ws, row, stt, info, parcel, mdsd, chu, vo, isVoChong, isDongSuDung, tenFile, maXa, ngayChay);
                     ApplyWarnings(ws, row, info, parcel, duplicateRows);
                     row++;
                     stt++;
@@ -137,20 +148,33 @@ public sealed class VietBdGcnExcelExporter : IVietBdGcnExcelExporter
 
     private static void WriteRow(
         IXLWorksheet ws, int row, int stt, VietBdGcnInfo info, VietBdGcnRow parcel, VietBdGcnMdsd? mdsd,
-        VietBdGcnOwner chu, VietBdGcnOwner? vo, bool isVoChong, bool isDongSuDung, string? tenFile, string maXa)
+        VietBdGcnOwner chu, VietBdGcnOwner? vo, bool isVoChong, bool isDongSuDung, string? tenFile, string maXa,
+        string ngayChay)
     {
         // --- Đơn đăng ký & Giấy chứng nhận ---
         ws.Cell(row, "A").Value = stt;
         // Cột B (DDK_maXa): lấy từ hộp thoại lúc bấm Bắt đầu, KHÔNG lấy từ OCR.
         ws.Cell(row, "B").Value = maXa;
-        ws.Cell(row, "C").Value = BuildMaDon(parcel);
+        // Cột C (DDK_maDon): CHỦ Ý dùng chung giá trị với cột N (số serial có dấu cách) — chốt với chủ
+        // dự án 26/08/2026, thay hẳn logic "{số tờ}-{số thửa}" cũ (BuildMaDon, đã bỏ).
+        var serialCoCach = NormalizeSpacing(info.so_serial);
+        ws.Cell(row, "C").Value = serialCoCach;
+        // Cột D (DDK_ngayTiepNhan): ngày CHẠY export (không phải ngày trên giấy), một giá trị cho cả lô.
+        ws.Cell(row, "D").Value = ngayChay;
         ws.Cell(row, "M").Value = isDongSuDung ? "1" : "0";
-        ws.Cell(row, "N").Value = RemoveSpaces(info.so_serial);
+        // Cột N (GCN_soPhatHanh): giữ dấu cách như OCR đọc được (VD "CA 332417") — KHÔNG RemoveSpaces.
+        ws.Cell(row, "N").Value = serialCoCach;
         ws.Cell(row, "O").Value = parcel.ky_so_vao_so ?? "";
         ws.Cell(row, "Q").Value = LastChars(info.ma_vach, 6);
         ws.Cell(row, "R").Value = parcel.ky_ngay_ky_gcn ?? "";
         ws.Cell(row, "S").Value = parcel.ky_nguoi_ky ?? "";
         ws.Cell(row, "T").Value = info.ma_vach ?? "";
+        // Cột I (DDK_thoiDiemDangKy): ngày cấp GCN = ngày ký (đã có sẵn ở cột R, cùng nguồn OCR).
+        ws.Cell(row, "I").Value = parcel.ky_ngay_ky_gcn ?? "";
+        // Cột L (DDK_dieuKienCapGiay): mặc định "0" — chốt với chủ dự án 26/08/2026, không đọc từ giấy.
+        ws.Cell(row, "L").Value = "0";
+        // Cột U (GCN_donViCap): cấp hành chính cơ quan ký, model đã phân loại sẵn ở ma_don_vi_cap.
+        ws.Cell(row, "U").Value = MapDonViCap(parcel.ma_don_vi_cap);
         // Prompt riêng của VietBD trả THẲNG mã danh mục — không còn bảng map tên → mã trong code.
         ws.Cell(row, "W").Value = (info.ma_loai_gcn ?? "").Trim();
         // Ba mục KHÁC NHAU trên giấy → ba cột khác nhau, không được trộn:
@@ -279,14 +303,26 @@ public sealed class VietBdGcnExcelExporter : IVietBdGcnExcelExporter
             ws.Cell(row, c).Value = "";
     }
 
-    /// <summary>Mã đơn theo quy ước Việt Bản Đồ: {số tờ}-{số thửa}.</summary>
-    private static string BuildMaDon(VietBdGcnRow parcel)
+    /// <summary>
+    /// Chuẩn hoá khoảng trắng của số serial (VD "CA  332417" hay "CA332417" đọc lệch) về đúng một
+    /// khoảng trắng giữa phần chữ và phần số, dùng cho cột C/N — KHÔNG xoá hẳn dấu cách như
+    /// <see cref="RemoveSpaces"/> (hàm đó vẫn giữ để so khớp trùng thửa nội bộ, xem <see cref="FindDuplicateParcelRows"/>).
+    /// </summary>
+    private static string NormalizeSpacing(string? value)
     {
-        var to = (parcel.td_so_to ?? "").Trim();
-        var thua = (parcel.td_so_thua ?? "").Trim();
-        if (to.Length == 0 && thua.Length == 0) return "";
-        return $"{to}-{thua}";
+        var s = (value ?? "").Trim();
+        if (s.Length == 0) return "";
+        return Regex.Replace(s, @"\s+", " ");
     }
+
+    /// <summary>Mã cấp hành chính cơ quan cấp cho cột U (GCN_donViCap): huyện→0, tỉnh→1, sở→2.</summary>
+    private static string MapDonViCap(string? maDonViCap) => (maDonViCap ?? "").Trim().ToLowerInvariant() switch
+    {
+        "huyen" => "0",
+        "tinh" => "1",
+        "so" => "2",
+        _ => ""
+    };
 
     /// <summary>
     /// Tìm các dòng ĐÃ ghi trùng thửa: khớp CẢ BA số phát hành (N) + số tờ (CJ) + số thửa (CI).

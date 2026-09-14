@@ -116,7 +116,7 @@ public sealed class UyBanExcelExporter : IUyBanExcelExporter
         if (string.IsNullOrEmpty(templatePath)) return templatePath;
         if (File.Exists(templatePath)) return templatePath;
 
-        // Đường dẫn tương đối thư mục exe (vd: Assets\Temp\Excel_FormMau_v3.xlsx).
+        // Đường dẫn tương đối thư mục exe (vd: Assets\Temp\Excel_FormMau_v5.xlsx).
         var rel = Path.Combine(AppContext.BaseDirectory, templatePath);
         if (File.Exists(rel)) return rel;
 

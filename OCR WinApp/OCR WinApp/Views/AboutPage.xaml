@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Page
     x:Class="OCR_WinApp.Views.AboutPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -17,7 +17,7 @@
             <TextBlock Text="Email: support@example.com" />
             <TextBlock Text="Website: https://example.com" />
 
-            <TextBlock Text="Phiên bản 1.1.0"
+            <TextBlock Text="Phiên bản 1.4.2"
                        Style="{ThemeResource BodyTextBlockStyle}" Margin="0,12,0,0" />
         </StackPanel>
     </ScrollViewer>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -277,7 +277,7 @@ internal static partial class Program
         var opt = new GcnIlisUbOptions();
         AssertEqual(5, opt.Workers, "GcnIlisUbOptions.Workers mặc định");
         AssertFalse(opt.OptimizeImages, "GcnIlisUbOptions.OptimizeImages mặc định");
-        AssertEqual(Path.Combine("Assets", "Temp", "Excel_FormMau_v3.xlsx"), opt.TemplateExcel, "GcnIlisUbOptions.TemplateExcel mặc định");
+        AssertEqual(Path.Combine("Assets", "Temp", "Excel_FormMau_v5.xlsx"), opt.TemplateExcel, "GcnIlisUbOptions.TemplateExcel mặc định");
         AssertEqual("gcn-ilis-ub-rules.json", opt.RulesFile, "GcnIlisUbOptions.RulesFile mặc định");
 
         // LoadIlisUbGcn đọc file cạnh exe; ở test harness file đó không tồn tại nên phải trả default,

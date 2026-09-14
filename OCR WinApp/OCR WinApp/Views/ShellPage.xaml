@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Page
     x:Class="OCR_WinApp.Views.ShellPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -82,7 +82,7 @@
                     <FontIcon Glyph="&#xE8C6;" />
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
-            <!-- Màn "OCR GCN iLIS" — pipeline envelope JSON → Excel form đầy đủ (khuôn iLIS Excel_FormMau_v3).
+            <!-- Màn "OCR GCN iLIS" — pipeline envelope JSON → Excel form đầy đủ (khuôn iLIS Excel_FormMau_v5).
                  Tag/screen key giữ nguyên "gcn-new" để cache JSON và error log trên máy người dùng không mồ côi. -->
             <NavigationViewItem Content="OCR GCN iLIS" Tag="gcn-new">
                 <NavigationViewItem.Icon>
@@ -94,6 +94,18 @@
             <NavigationViewItem Content="OCR GCN VietBD" Tag="gcn-vietbd">
                 <NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE82D;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <!-- Màn "OCR GCN VBD-BN" — lô GCN tái dùng nguyên pipeline VietBD, lô GTK trích CCCD/CMND riêng. -->
+            <NavigationViewItem Content="OCR GCN VBD-BN" Tag="gcn-vbd-bn">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE8F1;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <!-- Màn "Convert docx to Excel VBD" — parse docx Sổ cấp GCN thuần code (không AI), xuất khuôn VietBD. -->
+            <NavigationViewItem Content="Convert docx to Excel VBD" Tag="docx-vbd">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE8A5;" />
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
             <NavigationViewItem Content="OCR GCN iLis-UB" Tag="gcn-ilis-ub">

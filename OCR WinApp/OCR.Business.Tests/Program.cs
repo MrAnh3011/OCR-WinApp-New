@@ -20,6 +20,7 @@ using OCR.Business.NewGcn;
 using OCR.Business.Notifications;
 using OCR.Business.Pdf;
 using OCR.Business.Split;
+using OCR.Business.Tests;
 using OCR_WinApp.Services;
 using OCR_WinApp.ViewModels;
 using PdfSharp.Pdf;
@@ -111,6 +112,18 @@ internal static partial class Program
             return;
         }
 
+        if (args.Contains("--vbd-bn-only", StringComparer.OrdinalIgnoreCase))
+        {
+            VbdBnTests.Run();
+            return;
+        }
+
+        if (args.Contains("--docx-vbd-only", StringComparer.OrdinalIgnoreCase))
+        {
+            DocxVbdTests.Run();
+            return;
+        }
+
         if (args.Contains("--blank-page-only", StringComparer.OrdinalIgnoreCase))
         {
             await RunBlankPageTests();
@@ -165,6 +178,7 @@ internal static partial class Program
         NewGcnExcelExporterSeparatesNotesFromChangeHistory();
         RunVietBdGcnExporterTests();
         RunGcnIlisUbTests();
+        DocxVbdTests.Run();
         await RunBlankPageTests();
         await RunSerialRenameTests();
         AiScreensNotifyTelegramAfterRunCompletionAndNotOnExport();

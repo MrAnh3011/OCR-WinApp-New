@@ -8,7 +8,8 @@ using OCR.Business.Models;
 namespace OCR.Business.NewGcn;
 
 /// <summary>
-/// Ghi envelope GCN (New) ra Excel_FormMau_v3.xlsx (sheet "Data", từ dòng 5).
+/// Ghi envelope GCN (New) ra Excel_FormMau_v5.xlsx (sheet "Data", từ dòng 5).
+/// Dùng chung cho màn OCR GCN iLIS và OCR GCN iLis-UB.
 /// Port nguyên mapping cột từ GcnOcrApp.NewExtractService (SyncEnvelopeToExcel/WriteEnvelopeRow/WriteCoOwnerRowNew).
 /// </summary>
 public sealed class NewGcnExcelExporter : INewGcnExcelExporter
@@ -480,7 +481,9 @@ public sealed class NewGcnExcelExporter : INewGcnExcelExporter
         ws.Cell(row, "CW").Value = rowData.ky_ngay_ky_gcn ?? "";
         ws.Cell(row, "CX").Value = rowData.ky_ngay_ky_gcn ?? "";
         ws.Cell(row, "CY").Value = rowData.ky_nguoi_ky ?? "";
-        ws.Cell(row, "DB").Value = LastChars(rowData.ky_ngay_ky_gcn, 4);
+        // Khuôn v5 (Excel_FormMau_v5.xlsx) đổi cột DB từ "Năm cấp" → "Ngày cấp": dữ liệu nhập vào là
+        // NGÀY ĐẦY ĐỦ dd/MM/yyyy, KHÔNG còn lấy 4 ký tự cuối (năm) như khuôn v3.
+        ws.Cell(row, "DB").Value = NormalizeDateDdMmYyyy(rowData.ky_ngay_ky_gcn);
 
         // Ba mục KHÁC NHAU trên giấy → ba cột khác nhau, không được trộn:
         //  DE "Ghi chú trang 1" ← ghi chú in trên mặt 1 (mặt có quốc hiệu + tiêu đề GCN), thường rỗng.
@@ -519,6 +522,28 @@ public sealed class NewGcnExcelExporter : INewGcnExcelExporter
         => string.IsNullOrEmpty(value) ? "" : new string(value.Where(ch => !char.IsWhiteSpace(ch)).ToArray());
 
     /// <summary>Lấy tối đa <paramref name="n"/> ký tự cuối của chuỗi (rỗng nếu không có dữ liệu).</summary>
+    /// <summary>
+    /// Chuẩn hoá ngày về đúng khuôn <c>dd/MM/yyyy</c> cho cột "Ngày cấp" (DB) của khuôn v5.
+    /// Prompt đã yêu cầu model xuất sẵn <c>dd/MM/yyyy</c>; hàm này chỉ đệm số 0 cho ca model trả
+    /// <c>d/M/yyyy</c>. Mọi dạng khác (ngày khuyết, chuỗi lạ) GIỮ NGUYÊN — không được tự bịa hay xoá dữ liệu.
+    /// </summary>
+    private static string NormalizeDateDdMmYyyy(string? value)
+    {
+        var s = (value ?? "").Trim();
+        if (s.Length == 0) return "";
+
+        var parts = s.Split('/');
+        if (parts.Length != 3) return s;
+
+        var day = parts[0].Trim();
+        var month = parts[1].Trim();
+        var year = parts[2].Trim();
+        if (day.Length is < 1 or > 2 || month.Length is < 1 or > 2 || year.Length != 4) return s;
+        if (!day.All(char.IsDigit) || !month.All(char.IsDigit) || !year.All(char.IsDigit)) return s;
+
+        return $"{day.PadLeft(2, '0')}/{month.PadLeft(2, '0')}/{year}";
+    }
+
     private static string LastChars(string? value, int n)
     {
         var s = (value ?? "").Trim();

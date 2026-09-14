@@ -30,8 +30,50 @@ internal static partial class Program
         VietBdExporterLeavesHouseBlockEmptyWhenNoAsset();
         VietBdExporterThrowsWhenTemplateMissing();
         VietBdExporterWritesIntoRealTemplateKeepingHeaders();
+        VietBdExporterMapsAdminLevelToColumnU();
         VietBdPipelineIsFullySeparatedFromIlisScreen();
         VietBdPromptDropsLocalLookupTablesAndUsesVietBdCodes();
+    }
+
+    /// <summary>Chốt 26/08/2026: cột U (GCN_donViCap) = huyện→0, tỉnh→1, sở→2; không xác định → trống.</summary>
+    private static void VietBdExporterMapsAdminLevelToColumnU()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ocr-winapp-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var templatePath = CreateVietBdTemplate(root);
+            var outputPath = Path.Combine(root, "output.xlsx");
+            var mdsd = new VietBdGcnMdsd { ma_mdsd = "ODT" };
+
+            VietBdGcnEnvelope MakeEnvelope(string serial, string? maDonViCap)
+            {
+                var env = CreateVietBdEnvelope(serial, "ca_nhan",
+                    [new VietBdGcnOwner { ho_ten = "A" }], [CreateVietBdParcel("1", "1", mdsd)]);
+                env.danh_sach_dong[0].ma_don_vi_cap = maDonViCap;
+                return env;
+            }
+
+            var huyen = MakeEnvelope("UB 100001", "huyen");
+            var tinh = MakeEnvelope("UB 100002", "tinh");
+            var so = MakeEnvelope("UB 100003", "so");
+            var unknown = MakeEnvelope("UB 100004", null);
+            var garbage = MakeEnvelope("UB 100005", "không xác định được");
+
+            new VietBdGcnExcelExporter().Write([huyen, tinh, so, unknown, garbage], outputPath, templatePath);
+
+            using var output = new XLWorkbook(outputPath);
+            var ws = output.Worksheet("KeKhaiDangKy");
+            AssertEqual("0", ws.Cell(5, "U").Value.ToString(), "huyen -> 0");
+            AssertEqual("1", ws.Cell(6, "U").Value.ToString(), "tinh -> 1");
+            AssertEqual("2", ws.Cell(7, "U").Value.ToString(), "so -> 2");
+            AssertEqual("", ws.Cell(8, "U").Value.ToString(), "null -> trống, không đoán bừa");
+            AssertEqual("", ws.Cell(9, "U").Value.ToString(), "giá trị lạ -> trống, không đoán bừa");
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
     }
 
     private static string CreateVietBdTemplate(string root)
@@ -76,6 +118,9 @@ internal static partial class Program
             ky_so_vao_so = "CS00123",
             ky_ngay_ky_gcn = "20/01/2016",
             ky_nguoi_ky = "Nguyễn Hải Khiên",
+            // Giá trị mặc định hợp lý cho mọi test dùng chung fixture này — test riêng cho 3 giá trị
+            // còn lại của cột U nằm ở VietBdExporterMapsAdminLevelToColumnU.
+            ma_don_vi_cap = "huyen",
             muc_dich_su_dung = mdsd.ToList()
         };
 
@@ -120,9 +165,14 @@ internal static partial class Program
             using var output = new XLWorkbook(outputPath);
             var ws = output.Worksheet("KeKhaiDangKy");
             AssertEqual("1", ws.Cell(5, "A").Value.ToString(), "STT cột A");
-            AssertEqual("57-7", ws.Cell(5, "C").Value.ToString(), "Mã đơn = {số tờ}-{số thửa}");
+            // Chốt 26/08/2026: C = D = số serial giữ dấu cách (KHÔNG còn {số tờ}-{số thửa}).
+            AssertEqual("CK 123456", ws.Cell(5, "C").Value.ToString(), "Mã đơn = số serial có dấu cách, giống cột N");
             AssertEqual("0", ws.Cell(5, "M").Value.ToString(), "Không đồng sử dụng thì DDK_dongSuDung = 0");
-            AssertEqual("CK123456", ws.Cell(5, "N").Value.ToString(), "Số phát hành bỏ khoảng trắng");
+            AssertEqual("CK 123456", ws.Cell(5, "N").Value.ToString(), "Số phát hành GIỮ dấu cách (không RemoveSpaces nữa)");
+            AssertEqual(DateTime.Now.ToString("dd/MM/yyyy"), ws.Cell(5, "D").Value.ToString(), "Ngày tiếp nhận = ngày chạy export");
+            AssertEqual("20/01/2016", ws.Cell(5, "I").Value.ToString(), "Thời điểm đăng ký = ngày cấp (ký GCN), giống cột R");
+            AssertEqual("0", ws.Cell(5, "L").Value.ToString(), "Điều kiện cấp giấy mặc định 0");
+            AssertEqual("0", ws.Cell(5, "U").Value.ToString(), "Đơn vị cấp = huyện → 0");
             AssertEqual("CS00123", ws.Cell(5, "O").Value.ToString(), "Số vào sổ");
             AssertEqual("057278", ws.Cell(5, "Q").Value.ToString(), "Số hồ sơ gốc = 6 số cuối mã vạch");
             AssertEqual("20/01/2016", ws.Cell(5, "R").Value.ToString(), "Ngày cấp");
@@ -240,10 +290,12 @@ internal static partial class Program
 
             using var output = new XLWorkbook(outputPath);
             var ws = output.Worksheet("KeKhaiDangKy");
-            AssertEqual("57-7", ws.Cell(5, "C").Value.ToString(), "Mã đơn thửa 1");
-            AssertEqual("57-7", ws.Cell(6, "C").Value.ToString(), "Mã đơn thửa 1 (MĐSD thứ hai)");
-            AssertEqual("57-12", ws.Cell(7, "C").Value.ToString(), "Mã đơn thửa 2");
-            AssertEqual("57-12", ws.Cell(8, "C").Value.ToString(), "Mã đơn thửa 2 (MĐSD thứ hai)");
+            // C = số serial (không còn tờ-thửa) nên GIỐNG NHAU trên mọi dòng của cùng một GCN,
+            // kể cả khi thửa khác nhau — khác test cũ trước 26/08/2026.
+            AssertEqual("CK 333333", ws.Cell(5, "C").Value.ToString(), "Mã đơn thửa 1 = serial");
+            AssertEqual("CK 333333", ws.Cell(6, "C").Value.ToString(), "Mã đơn thửa 1 (MĐSD thứ hai) = serial");
+            AssertEqual("CK 333333", ws.Cell(7, "C").Value.ToString(), "Mã đơn thửa 2 = serial (giống thửa 1, cùng GCN)");
+            AssertEqual("CK 333333", ws.Cell(8, "C").Value.ToString(), "Mã đơn thửa 2 (MĐSD thứ hai) = serial");
             AssertEqual("CLN", ws.Cell(8, "CU").Value.ToString(), "MĐSD cuối cùng");
 
             for (int row = 5; row <= 8; row++)
@@ -361,9 +413,10 @@ internal static partial class Program
 
             using var output = new XLWorkbook(outputPath);
             var ws = output.Worksheet("KeKhaiDangKy");
-            AssertEqual("DH444331", ws.Cell(5, "N").Value.ToString(), "Fallback vẫn có số phát hành");
+            AssertEqual("DH 444331", ws.Cell(5, "N").Value.ToString(), "Fallback vẫn có số phát hành, giữ dấu cách");
             AssertEqual("Lê Thị Quyên", ws.Cell(5, "AB").Value.ToString(), "Fallback vẫn có chủ sử dụng");
-            AssertEqual("", ws.Cell(5, "C").Value.ToString(), "Fallback không có tờ/thửa thì mã đơn để trống");
+            // C = serial (không còn tờ-thửa) nên fallback KHÔNG còn để trống — khác test cũ.
+            AssertEqual("DH 444331", ws.Cell(5, "C").Value.ToString(), "Fallback: mã đơn vẫn = serial dù không có tờ/thửa");
             AssertEqual("", ws.Cell(5, "CI").Value.ToString(), "Fallback: số thửa trống");
             AssertEqual("", ws.Cell(5, "CU").Value.ToString(), "Fallback: MĐSD trống");
             AssertEqual("trung_binh", ws.Cell(5, "FF").Value.ToString(), "Độ tin cậy vào cột phụ FF");
@@ -763,7 +816,7 @@ internal static partial class Program
             // khác sheet mẫu KeKhaiDangKy_Mau đánh 1..161) — chỉ cần khẳng định nó không bị exporter đụng vào.
             AssertEqual("108", ws.Cell(4, "FE").Value.ToString(), "Dòng 4 giữ nguyên số cột gốc của template");
 
-            AssertEqual("57-7", ws.Cell(5, "C").Value.ToString(), "Template thật: mã đơn");
+            AssertEqual("CK 999999", ws.Cell(5, "C").Value.ToString(), "Template thật: mã đơn = serial");
             AssertEqual("ODT", ws.Cell(5, "CU").Value.ToString(), "Template thật: MĐSD dòng 1");
             AssertEqual("BHK", ws.Cell(6, "CU").Value.ToString(), "Template thật: MĐSD dòng 2");
             AssertEqual("13/04/2076", ws.Cell(6, "CY").Value.ToString(), "Template thật: ngày hết hạn sử dụng");
@@ -823,7 +876,7 @@ internal static partial class Program
             "Bỏ trống / huỷ nhập mã xã thì không được chạy lô.");
         AssertTrue(startBody.Contains("ResetWorkspaceAsync", StringComparison.Ordinal),
             "Chọn quét lại vẫn phải xoá workspace cache cũ.");
-        AssertTrue(vmSource.Contains("_excel.Write(snapshot, outPath, _opt.TemplateExcel, _maXa)", StringComparison.Ordinal),
+        AssertTrue(vmSource.Contains("_excel.Write(snapshot, outPath, _opt.TemplateExcel, _maXa,", StringComparison.Ordinal),
             "Mã xã đã nhập phải được truyền xuống exporter lúc Export.");
 
         // Quota vẫn trừ theo SỐ THỬA (khuôn VietBD nở dòng theo MĐSD × chủ).

@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 
 namespace OCR.Business.Models;
 
@@ -15,7 +15,7 @@ public sealed class GcnIlisUbOptions
     public bool OptimizeImages { get; set; } = false;
 
     /// <summary>Duong dan Excel template, tuong doi thu muc exe.</summary>
-    public string TemplateExcel { get; set; } = Path.Combine("Assets", "Temp", "Excel_FormMau_v3.xlsx");
+    public string TemplateExcel { get; set; } = Path.Combine("Assets", "Temp", "Excel_FormMau_v5.xlsx");
 
     /// <summary>File JSON quy tac gop/doi ten file kem theo, tuong doi thu muc exe.</summary>
     public string RulesFile { get; set; } = "gcn-ilis-ub-rules.json";

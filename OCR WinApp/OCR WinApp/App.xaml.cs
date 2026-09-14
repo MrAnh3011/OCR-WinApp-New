@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -7,6 +7,7 @@ using OCR.Business.Ai;
 using OCR.Business.Auth;
 using OCR.Business.BlankPage;
 using OCR.Business.Configuration;
+using OCR.Business.DocxVbd;
 using OCR.Business.Export;
 using OCR.Business.IlisUb;
 using OCR.Business.Models;
@@ -18,6 +19,7 @@ using OCR.Business.Processors;
 using OCR.Business.SerialRename;
 using OCR.Business.Split;
 using OCR.Business.UyBan;
+using OCR.Business.VbdBn;
 using OCR.Business.VietBdGcn;
 using OCR_WinApp.Navigation;
 using OCR_WinApp.Services;
@@ -59,11 +61,19 @@ namespace OCR_WinApp
             services.AddLogging(builder => builder.AddDebug());
 
             // Tầng nghiệp vụ (OCR.Business). Mọi cấu hình API/model/OCR do Business đọc (AppSettingsLoader).
-            var authOptions = AppSettingsLoader.LoadAuthApi();
-            if (string.IsNullOrWhiteSpace(authOptions.BaseUrl))
-                services.AddSingleton<IAuthService, LocalAuthService>();
-            else
-                services.AddSingleton<IAuthService>(_ => new ApiAuthService(authOptions));
+            // ─── TẠM TẮT API BACKEND (https://raovatphuly.vn:8080/api) ───────────────────────────────────
+            // App KHÔNG gọi mạng cho xác thực & hạn mức: luôn dùng LocalAuthService (nhận mọi tài khoản/mật
+            // khẩu không rỗng; RecordOcrCreditAsync trả Success không phát request; CurrentSession.Quota = null
+            // nên donut hạn mức ở Trang chủ hiển thị rỗng — HomeViewModel đã có nhánh xử lý null).
+            // BẬT LẠI: bỏ comment 5 dòng dưới, xoá dòng AddSingleton<IAuthService, LocalAuthService>() cuối
+            // khối này, rồi dán URL vào "Api.BaseUrl" trong appsettings.business.json.
+            // var authOptions = AppSettingsLoader.LoadAuthApi();
+            // if (string.IsNullOrWhiteSpace(authOptions.BaseUrl))
+            //     services.AddSingleton<IAuthService, LocalAuthService>();
+            // else
+            //     services.AddSingleton<IAuthService>(_ => new ApiAuthService(authOptions));
+            services.AddSingleton<IAuthService, LocalAuthService>();
+            // ─────────────────────────────────────────────────────────────────────────────────────────────
             services.AddSingleton<IOcrEngine, LocalOcrEngine>();
             services.AddSingleton<IPdfRenderer, PdfRenderer>();
             services.AddSingleton<IPdfRotationNormalizer, PdfRotationNormalizer>();
@@ -94,7 +104,7 @@ namespace OCR_WinApp
             services.AddSingleton<ISplitGcnService, SplitGcnService>();
             services.AddSingleton<ISplitRunCacheService, SplitRunCacheService>();
 
-            // Pipeline OCR GCN iLIS — gửi PDF/ảnh → envelope JSON → Excel_FormMau_v3.
+            // Pipeline OCR GCN iLIS — gửi PDF/ảnh → envelope JSON → Excel_FormMau_v5.
             services.AddSingleton(AppSettingsLoader.LoadNewGcn());
             services.AddSingleton(AppSettingsLoader.LoadGeminiUpload());
             services.AddSingleton(sp => new NewGcnRunCacheService(sp.GetRequiredService<NewGcnOptions>().TempDir));
@@ -107,6 +117,33 @@ namespace OCR_WinApp
             services.AddSingleton(sp => new VietBdGcnRunCacheService(sp.GetRequiredService<VietBdGcnOptions>().TempDir));
             services.AddSingleton<IVietBdGcnExtractService, VietBdGcnExtractService>();
             services.AddSingleton<IVietBdGcnExcelExporter, VietBdGcnExcelExporter>();
+
+            // Màn OCR GCN VBD-BN — lô GCN TÁI DÙNG extract/prompt/schema VietBD nguyên trạng;
+            // lô GTK có luồng CCCD riêng. Cache root riêng vbdbn-temp (không lẫn màn VietBD).
+            services.AddSingleton(AppSettingsLoader.LoadVbdBn());
+            services.AddSingleton<ICccdExtractService, CccdExtractService>();
+            services.AddSingleton<IVbdBnExcelExporter, VbdBnExcelExporter>();
+            services.AddSingleton<GcnVbdBnViewModel>(sp => new GcnVbdBnViewModel(
+                sp.GetRequiredService<IFolderPickerService>(),
+                sp.GetRequiredService<IVietBdGcnExtractService>(),
+                sp.GetRequiredService<ICccdExtractService>(),
+                sp.GetRequiredService<IVbdBnExcelExporter>(),
+                sp.GetRequiredService<IExportResultNotifier>(),
+                sp.GetRequiredService<IErrorLogService>(),
+                sp.GetRequiredService<IGeminiFileApiService>(),
+                sp.GetRequiredService<IGeminiUploadPipeline>(),
+                sp.GetRequiredService<IAuthService>(),
+                new VietBdGcnRunCacheService(sp.GetRequiredService<VbdBnOptions>().TempDir),
+                sp.GetRequiredService<ISplitCachePromptService>(),
+                sp.GetRequiredService<IMaXaPromptService>(),
+                sp.GetRequiredService<VbdBnOptions>(),
+                sp.GetRequiredService<IPdfRenderer>()));
+
+            // Màn "Convert docx to Excel VBD" — parse docx Sổ cấp GCN THUẦN CODE (không AI, không quota),
+            // tái dùng nguyên IVietBdGcnExcelExporter + template VietBD đã đăng ký ở trên.
+            services.AddSingleton(AppSettingsLoader.LoadDocxVbd());
+            services.AddSingleton<IDocxVbdConvertService, DocxVbdConvertService>();
+            services.AddSingleton<DocxVbdViewModel>();
 
             // Màn OCR GCN iLis-UB — DÙNG CHUNG prompt/schema/extract service/exporter Excel/cache JSON
             // với màn iLIS (chỉ khác screenKey khi lấy workspace). Riêng phần dựng cây thư mục kết quả

@@ -162,6 +162,48 @@ public static class AppSettingsLoader
         return opt;
     }
 
+    /// <summary>Cấu hình màn OCR GCN VBD-BN (mục "VbdBn").</summary>
+    public static VbdBnOptions LoadVbdBn()
+    {
+        var opt = new VbdBnOptions();
+        try
+        {
+            if (!File.Exists(SettingsPath)) return opt;
+            using var doc = JsonDocument.Parse(File.ReadAllText(SettingsPath));
+            if (!doc.RootElement.TryGetProperty("VbdBn", out var s)) return opt;
+
+            if (s.TryGetProperty("Workers", out var w) && w.TryGetInt32(out var workers)) opt.Workers = workers;
+            if (s.TryGetProperty("OptimizeImages", out var oi) &&
+                (oi.ValueKind == JsonValueKind.True || oi.ValueKind == JsonValueKind.False))
+                opt.OptimizeImages = oi.GetBoolean();
+            if (s.TryGetProperty("TemplateExcel", out var t) && t.GetString() is { Length: > 0 } template)
+                opt.TemplateExcel = template;
+            if (s.TryGetProperty("GcnKeyword", out var gk) && gk.GetString() is { Length: > 0 } gcnKw)
+                opt.GcnKeyword = gcnKw;
+            if (s.TryGetProperty("GtkKeyword", out var tk) && tk.GetString() is { Length: > 0 } gtkKw)
+                opt.GtkKeyword = gtkKw;
+        }
+        catch { }
+        return opt;
+    }
+
+    /// <summary>Man "Convert docx to Excel VBD" (muc "DocxVbd") — parse docx thuan code, chi co template.</summary>
+    public static DocxVbdOptions LoadDocxVbd()
+    {
+        var opt = new DocxVbdOptions();
+        try
+        {
+            if (!File.Exists(SettingsPath)) return opt;
+            using var doc = JsonDocument.Parse(File.ReadAllText(SettingsPath));
+            if (!doc.RootElement.TryGetProperty("DocxVbd", out var s)) return opt;
+
+            if (s.TryGetProperty("TemplateExcel", out var t) && t.GetString() is { Length: > 0 } template)
+                opt.TemplateExcel = template;
+        }
+        catch { }
+        return opt;
+    }
+
     /// <summary>OCR GCN iLis-UB — worker/template/file quy tac. Dung chung cache voi man iLIS.</summary>
     public static GcnIlisUbOptions LoadIlisUbGcn()
     {

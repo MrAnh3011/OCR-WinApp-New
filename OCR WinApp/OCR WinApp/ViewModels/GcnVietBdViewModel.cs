@@ -579,8 +579,19 @@ public partial class GcnVietBdViewModel : ObservableObject
         {
             var stamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var outPath = Path.Combine(destDir, $"GCN-VietBD-output_{stamp}.xlsx");
+
+            // Cột FE (Tên file quét): đường dẫn tương đối từ thư mục gốc đã chọn tới file, kèm địa chỉ
+            // (cũng tương đối) của mọi file khác nằm CÙNG thư mục — ngăn cách bằng ", ". Đọc đĩa TẠI ĐÂY
+            // (trước rename ở dưới) vì RenameSuccessfulSourceFiles chạy SAU sẽ đổi tên file trên đĩa.
+            var rootFolder = _workspace?.SourceFolder;
+            var feByEnvelope = new Dictionary<VietBdGcnEnvelope, string>();
+            if (rootFolder is not null)
+                foreach (var s in successfulSources)
+                    feByEnvelope[s.Envelope] = BuildScannedFileAddress(rootFolder, s.SourcePath);
+
             var rowCount = await Task.Run(
-                () => _excel.Write(snapshot, outPath, _opt.TemplateExcel, _maXa),
+                () => _excel.Write(snapshot, outPath, _opt.TemplateExcel, _maXa,
+                    resolveTenFile: env => feByEnvelope.TryGetValue(env, out var addr) ? addr : env.ten_file),
                 CancellationToken.None);
             var renameResult = await Task.Run(
                 () => RenameSuccessfulSourceFiles(successfulSources),
@@ -600,6 +611,28 @@ public partial class GcnVietBdViewModel : ObservableObject
             _errorLog.LogException(ScreenKey, "ExportAsync", ex);
             ErrorMessage = UserFacingError.Export(ex);
         }
+    }
+
+    /// <summary>
+    /// Giá trị cột FE: đường dẫn tương đối từ <paramref name="rootFolder"/> tới <paramref name="filePath"/>,
+    /// nối thêm đường dẫn tương đối của mọi file khác nằm CÙNG thư mục cha trực tiếp (ngăn cách ", ") —
+    /// giúp người rà soát thấy ngay các file liên quan (đơn, sơ đồ…) đi kèm file GCN đã quét.
+    /// </summary>
+    private static string BuildScannedFileAddress(string rootFolder, string filePath)
+    {
+        var selfRelative = Path.GetRelativePath(rootFolder, filePath);
+        var parts = new List<string> { selfRelative };
+
+        var dir = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir))
+        {
+            foreach (var sibling in Directory.EnumerateFiles(dir).OrderBy(f => f, StringComparer.OrdinalIgnoreCase))
+            {
+                if (string.Equals(sibling, filePath, StringComparison.OrdinalIgnoreCase)) continue;
+                parts.Add(Path.GetRelativePath(rootFolder, sibling));
+            }
+        }
+        return string.Join(", ", parts);
     }
 
     private async Task RecordOcrCreditAsync(string tenFile, string duongDanFile, int soTrang)

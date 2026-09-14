@@ -85,10 +85,16 @@ internal static class VietBdGcnResponseSchema
             "td_so_thua", "td_so_to", "td_tong_dien_tich", "loai_thua_dat",
             "dctd_so_nha_ngo", "dctd_duong_pho", "dctd_to_dan_pho", "dctd_dia_chi_day_du",
             "ten_don_vi_do", "ngay_hoan_thanh_do",
-            "ky_so_vao_so", "ky_ngay_vao_so", "ky_ngay_ky_gcn", "ky_nguoi_ky");
+            "ky_so_vao_so", "ky_ngay_vao_so", "ky_ngay_ky_gcn", "ky_nguoi_ky", "ma_don_vi_cap");
         rowProperties["muc_dich_su_dung"] = Arr(mdsd);
         rowProperties["nha_o"] = nhaO;
-        var row = Obj(rowProperties, required: ["td_so_thua", "td_so_to", "td_tong_dien_tich", "muc_dich_su_dung"]);
+        // Cụm ký PHẢI nằm trong required (bug thực tế 27/08/2026, lô VanSon_Thu: model flash-lite trả
+        // null đồng loạt ky_so_vao_so/ky_ngay_ky_gcn/ky_nguoi_ky ở MỌI file — kể cả mẫu QR in rõ —
+        // không kèm cảnh báo, làm trống 3 cột O/R/S của Excel). required + nullable = buộc model
+        // LUÔN cân nhắc trường này, giá trị vẫn được null khi giấy thật sự không đọc được.
+        var row = Obj(rowProperties, required:
+            ["td_so_thua", "td_so_to", "td_tong_dien_tich", "muc_dich_su_dung",
+             "ky_so_vao_so", "ky_ngay_ky_gcn", "ky_nguoi_ky"]);
 
         var infoProperties = Strings(
             "so_serial", "loai_mau", "ma_loai_gcn", "ten_loai_gcn", "loai_quan_he",
@@ -102,9 +108,11 @@ internal static class VietBdGcnResponseSchema
         infoProperties["canh_bao"] = StrArr();
 
         // Cùng lý do với schema iLIS: chu_su_dung_chi_tiet + so_luong_thua_dat_doc_duoc phải LUÔN có
-        // mặt (giá trị vẫn được null) để model không lặng lẽ bỏ qua chủ sử dụng.
+        // mặt (giá trị vẫn được null) để model không lặng lẽ bỏ qua chủ sử dụng. do_tin_cay thêm vào
+        // required cùng đợt sửa bug 27/08/2026: các lô chạy sau 24/08 bị model bỏ trắng do_tin_cay
+        // hàng loạt nên mất luôn cơ chế tô màu cảnh báo dòng của exporter.
         var info = Obj(infoProperties,
-            required: ["so_serial", "so_luong_thua_dat_doc_duoc", "chu_su_dung_chi_tiet"]);
+            required: ["so_serial", "so_luong_thua_dat_doc_duoc", "chu_su_dung_chi_tiet", "do_tin_cay"]);
 
         return Obj(new Dictionary<string, object>
         {

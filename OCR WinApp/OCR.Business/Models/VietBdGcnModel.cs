@@ -135,6 +135,12 @@ public class VietBdGcnRow
     public string? ky_ngay_vao_so { get; set; }
     public string? ky_ngay_ky_gcn { get; set; }
     public string? ky_nguoi_ky { get; set; }
+
+    /// <summary>
+    /// Cấp hành chính của cơ quan ký/xác nhận GCN (dòng cơ quan trong cụm ký, ngay dưới ngày ký) —
+    /// dùng để đổ vào cột `U` (GCN_donViCap) của template: "huyen"→0, "tinh"→1, "so"→2.
+    /// </summary>
+    public string? ma_don_vi_cap { get; set; }
 }
 
 /// <summary>

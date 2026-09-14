@@ -11,7 +11,7 @@
   <Identity
     Name="8e40f3fe-7f8e-4508-b494-b012d194802f"
     Publisher="CN=AnhPTWin"
-    Version="1.1.0.0" />
+    Version="1.4.2.0" />
 
   <mp:PhoneIdentity PhoneProductId="8e40f3fe-7f8e-4508-b494-b012d194802f" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 

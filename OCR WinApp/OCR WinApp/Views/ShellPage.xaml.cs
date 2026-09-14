@@ -135,6 +135,12 @@ namespace OCR_WinApp.Views
                 case "gcn-vietbd":
                     _navigation.NavigateTo(typeof(GcnVietBdPage));
                     break;
+                case "gcn-vbd-bn":
+                    _navigation.NavigateTo(typeof(GcnVbdBnPage));
+                    break;
+                case "docx-vbd":
+                    _navigation.NavigateTo(typeof(DocxVbdPage));
+                    break;
                 case "gcn-ilis-ub":
                     _navigation.NavigateTo(typeof(GcnIlisUbPage));
                     break;

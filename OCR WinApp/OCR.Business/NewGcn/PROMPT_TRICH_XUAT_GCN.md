@@ -26,7 +26,7 @@ Bạn là chuyên gia trích xuất dữ liệu cho **Giấy chứng nhận quy�
 6. **Chỉ xuất JSON hợp lệ**, không kèm giải thích ngoài JSON.
 7. **Đầu ra LUÔN là MỘT object JSON duy nhất** (mở bằng `{`), **KHÔNG BAO GIỜ** là mảng — kể cả khi file chứa nhiều giấy chứng nhận.
 8. **Đếm số GCN trong file → `so_luong_gcn_trong_file`** (trường ở NGOÀI `thong_tin_gcn`):
-   - Đếm số **giấy chứng nhận riêng biệt**, nhận biết bằng **số serial khác nhau** (VD `BD 784357` khác `BD 755246`). Mỗi GCN có đúng một số serial in ở góc dưới mặt 1.
+   - Đếm số **giấy chứng nhận riêng biệt**, nhận biết bằng **số serial khác nhau** (VD mẫu cũ `BD 784357` khác `BD 755246`; mẫu QR `AA 06654954` khác `AA 06654955`). Mỗi GCN có đúng một số serial in ở mặt 1 / trang bìa (**giấy KHÔNG có mã QR: 1–2 chữ cái + 6 chữ số; mẫu QR: 2 chữ cái + 8 chữ số** — xem Bước 4.1).
    - **1 GCN có nhiều thửa đất vẫn là 1 GCN** → `so_luong_gcn_trong_file = 1`. Đừng đếm theo số thửa (số thửa đã có `so_luong_thua_dat_doc_duoc`).
    - Mẫu cũ 4 mặt / mẫu QR 2 mặt của **cùng một** serial cũng chỉ là 1 GCN, dù nằm trên nhiều trang PDF.
    - Nếu đếm được **nhiều hơn 1**: điền đúng số đếm được, rồi trích xuất GCN **đầu tiên** vào phần còn lại của JSON. Phần mềm sẽ tự báo người dùng tách file, bạn không cần cố nhồi nhiều GCN vào một object.
@@ -47,7 +47,7 @@ Bản scan thường có **2 trang PDF, mỗi trang PDF chứa 2 mặt giấy n�
 
 | Mặt | Mỏ neo nhận biết | Dữ liệu lấy từ mặt này |
 |---|---|---|
-| **Mặt 1** | Quốc hiệu `CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM` + tiêu ngữ `Độc lập - Tự do - Hạnh phúc`; tiêu đề `GIẤY CHỨNG NHẬN QUYỀN SỬ DỤNG ĐẤT, QUYỀN SỞ HỮU NHÀ Ở VÀ TÀI SẢN KHÁC GẮN LIỀN VỚI ĐẤT`; mục `I. Người sử dụng đất, chủ sở hữu nhà ở và tài sản khác gắn liền với đất`; **số serial in ở góc dưới-phải** | Chủ sử dụng (Bước 2) · `so_serial` · `ghi_chu_trang_1` (chỉ khi mặt này thật sự có ghi chú) |
+| **Mặt 1** | Quốc hiệu `CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM` + tiêu ngữ `Độc lập - Tự do - Hạnh phúc`; tiêu đề `GIẤY CHỨNG NHẬN QUYỀN SỬ DỤNG ĐẤT, QUYỀN SỞ HỮU NHÀ Ở VÀ TÀI SẢN KHÁC GẮN LIỀN VỚI ĐẤT`; mục `I. Người sử dụng đất, chủ sở hữu nhà ở và tài sản khác gắn liền với đất`; **số serial in ở góc dưới-phải — khuôn 2 chữ cái + 6 chữ số** (VD `BD 784357`) | Chủ sử dụng (Bước 2) · `so_serial` · `ghi_chu_trang_1` (chỉ khi mặt này thật sự có ghi chú) |
 | **Mặt 2** | Bắt đầu bằng `II. Thửa đất, nhà ở và tài sản khác gắn liền với đất`, các mục con `1. Thửa đất` … **`6. Ghi chú`**; **cuối mặt** có cụm ký (địa danh + ngày tháng năm + cơ quan cấp + chức danh + dấu mộc + họ tên người ký) và dòng `Số vào sổ cấp GCN` | Thửa đất (Bước 3) · **`6. Ghi chú` → `ghi_chu`** · cụm ký + `ky_so_vao_so` (Bước 4) |
 | **Mặt 3** | Bắt đầu bằng `III. Sơ đồ thửa đất, nhà ở và tài sản khác gắn liền với đất` (sơ đồ + `BẢNG KÊ TỌA ĐỘ`); chứa **`IV. Những thay đổi sau khi cấp Giấy chứng nhận`** — bảng 2 cột `Nội dung thay đổi và cơ sở pháp lý` / `Xác nhận của cơ quan có thẩm quyền`, nội dung thường **viết tay + dấu mộc** | **`IV. Những thay đổi…` → `thong_tin_thay_doi`** |
 | **Mặt 4** | Nằm **bên trái mặt 1**; là **phần TIẾP THEO của bảng `Những thay đổi sau khi cấp Giấy chứng nhận`** (cùng 2 cột như mặt 3, thường để trống); cuối mặt có dòng `Người được cấp Giấy chứng nhận không được sửa chữa, tẩy xoá…` và **mã vạch ở góc dưới-phải** (có thể có hoặc không) | **Phần tiếp của `thong_tin_thay_doi`** · **`ma_vach`** |
@@ -60,7 +60,7 @@ Mỗi mặt nằm **trọn vẹn trong MỘT trang PDF riêng** (không ghép 2 
 
 | Mặt | Mỏ neo nhận biết | Dữ liệu lấy từ mặt này |
 |---|---|---|
-| **Trang 1** | Quốc hiệu + tiêu ngữ; tiêu đề rút gọn `GIẤY CHỨNG NHẬN QUYỀN SỬ DỤNG ĐẤT, QUYỀN SỞ HỮU TÀI SẢN GẮN LIỀN VỚI ĐẤT` (**không** có cụm "nhà ở"); **mã QR ở góc trên-phải**; các mục đánh số Ả Rập `1.` `2.` `3.`; **số serial ở góc dưới-trái**; cụm ký ở góc dưới-phải; dòng `Thông tin chi tiết được thể hiện tại mã QR` ở cuối | Chủ sử dụng + thửa đất + tài sản · `so_serial` · cụm ký (Bước 4) · `ghi_chu_trang_1` (chỉ khi mặt này thật sự có ghi chú) |
+| **Trang 1** | Quốc hiệu + tiêu ngữ; tiêu đề rút gọn `GIẤY CHỨNG NHẬN QUYỀN SỬ DỤNG ĐẤT, QUYỀN SỞ HỮU TÀI SẢN GẮN LIỀN VỚI ĐẤT` (**không** có cụm "nhà ở"); **mã QR ở góc trên-phải**; các mục đánh số Ả Rập `1.` `2.` `3.`; **số serial ở góc dưới-trái — khuôn 2 chữ cái + ĐÚNG 8 chữ số** (VD `AA 06654954`, KHÔNG phải 6 số); cụm ký ở góc dưới-phải; dòng `Thông tin chi tiết được thể hiện tại mã QR` ở cuối | Chủ sử dụng + thửa đất + tài sản · `so_serial` · cụm ký (Bước 4) · `ghi_chu_trang_1` (chỉ khi mặt này thật sự có ghi chú) |
 | **Trang 2** | Mục `4. Sơ đồ thửa đất, tài sản gắn liền với đất` (+ bảng toạ độ); **`5. Ghi chú`**; `6. Những thay đổi sau khi cấp Giấy chứng nhận`; **cuối trang** có dòng `Số vào sổ cấp Giấy chứng nhận: …` (thường viết tay) | **`5. Ghi chú` → `ghi_chu`** · **`6. Những thay đổi… ` → `thong_tin_thay_doi`** · `ky_so_vao_so` |
 
 **Mẫu QR KHÔNG có mã vạch số** (đã thay bằng mã QR) → `ma_vach = null`, không cảnh báo.
@@ -157,8 +157,38 @@ Quy tắc nhiều mục đích: nếu **một thửa** có nhiều mục đích,
 
 ## BƯỚC 4 — SỐ SERIAL & THÔNG TIN KÝ GCN
 
-- `so_serial` (cấp GCN): **mã serial in ở góc dưới trang bìa** — **góc dưới-phải** ở mẫu cũ — định dạng **1 hoặc 2 chữ cái + khoảng trắng + 6 chữ số** (VD `CA 332417`, `CI 135231`), **góc dưới-trái** ở mẫu QR — định dạng **1 hoặc 2 chữ cái + khoảng trắng + 8 chữ số** (VD `AA 33241723`, `AA 06654954`). Chuẩn hoá đúng dạng này (khoảng trắng và cụm 6 số với mẫu cũ và 8 số với mẫu QR); nếu nghi ngờ đọc sai → vẫn điền giá trị đọc được và thêm `canh_bao`.
-- Nếu thấy chuỗi khớp dạng serial ở góc dưới, trong tên file được gửi, hoặc tên thư mục nguồn (VD `BX 037034`, `CK 123056``AA 33241723`, `AA 06654954`) thì **bắt buộc điền vào `so_serial`**, không được trả `null`. Trường hợp không chắc đó có phải serial hay không thì vẫn điền chuỗi khớp định dạng và thêm `canh_bao` để người dùng rà soát.
+### 4.1 `so_serial` — ĐỘ DÀI PHẦN SỐ PHỤ THUỘC MẪU GIẤY (lỗi hay gặp nhất: serial mẫu QR bị đọc thiếu, chỉ còn 6 chữ số)
+
+Serial là mã in sẵn gồm **phần chữ cái + phần chữ số**. **Số chữ số KHÁC NHAU giữa hai đời mẫu** — phải xác định mẫu giấy ở Bước 1 (`loai_mau`) **trước**, rồi đọc serial theo đúng khuôn của mẫu đó:
+
+| Mẫu giấy | Vị trí serial | Khuôn BẮT BUỘC | Ví dụ ĐÚNG | Ví dụ SAI (không được xuất) |
+|---|---|---|---|---|
+| **Mẫu cũ** — cấp trước 01/01/2025, **không có mã QR** (`loai_mau` = `mau_cu` hoặc `mau_moi` — ⚠️ `mau_moi` ở đây nghĩa là **mẫu 4 mặt trước 2025**, KHÔNG PHẢI "mẫu mới có mã QR" nói ở phần VAI TRÒ; giấy có mã QR **luôn** là `mau_qr`) | Góc **dưới-phải** mặt 1; riêng "sổ đỏ" mẫu 1993/2003 (tiêu đề ngắn `GIẤY CHỨNG NHẬN QUYỀN SỬ DỤNG ĐẤT`) in **sau chữ `Số` ở nửa dưới trang bìa**, chuẩn hoá thì bỏ chữ `Số` | **2 chữ cái in hoa + 1 khoảng trắng + ĐÚNG 6 chữ số**. Ngoại lệ duy nhất: mẫu Luật Đất đai 1993 rất cũ có **1 chữ cái + 6 chữ số** | `CA 332417`, `CI 135231`, `BD 784357`, `A 679987`, `Số AB 727960` → `AB 727960` | `CA 33241` (thiếu số), `CA 3324170` (thừa số) |
+| **Mẫu QR** — cấp từ 01/01/2025 (`loai_mau` = `mau_qr`; mã QR góc trên-phải, tiêu đề rút gọn không có cụm "nhà ở") | Góc **dưới-trái** trang 1 | **2 chữ cái in hoa + 1 khoảng trắng + ĐÚNG 8 chữ số** | `AA 33241723`, `AA 06654954`, `AB 00012345` | `AA 332417` (chỉ 6 số → đã đọc THIẾU 2 số), `AA 6654954` (7 số → mất số `0` đầu) |
+
+⚠️ **Tiêu chí QUYẾT ĐỊNH giữa hai khuôn là MÃ QR**, không phải tiêu đề: **có mã QR ở góc trên-phải → mẫu QR → 8 chữ số**; **không có mã QR → mẫu cũ → 6 chữ số**, kể cả khi tiêu đề ngắn không có cụm "nhà ở" (đó là mẫu 1993/2003, vẫn 6 chữ số).
+
+⚠️ **Ngoại lệ khi KHÔNG quan sát được mã QR** (ảnh cắt mép, mờ, mất góc trên-phải, mã QR bị mộc/vật che). Ngoại lệ này **KHÔNG áp dụng** cho giấy nhìn rõ góc trên-phải và xác nhận không in mã QR — giấy đó là mẫu cũ, 6 chữ số. Khi ngoại lệ áp dụng, căn cứ thay thế là **VỊ TRÍ IN SERIAL**, xét lần lượt và **DỪNG ngay ở bước khớp đầu tiên**:
+1. Serial in ở **góc dưới-PHẢI** mặt 1, **hoặc** sau chữ `Số` ở **nửa dưới trang bìa** (mẫu 1993/2003) → **mẫu cũ, 6 chữ số**. **Dừng tại đây**, không xét tiếp các dấu hiệu bên dưới.
+2. Serial in ở **góc dưới-TRÁI** trang 1 → **mẫu QR, 8 chữ số**.
+3. Không xác định được vị trí serial → coi là **mẫu QR (8 chữ số)** nếu có `ky_ngay_ky_gcn` **≥ 01/01/2025**, có dòng `Thông tin chi tiết được thể hiện tại mã QR`, hoặc trang 1 gộp cả chủ sử dụng + thửa đất + tài sản dưới các **mục CHÍNH** đánh số Ả Rập `1. Người sử dụng đất…` `2. Thửa đất…` `3. Tài sản…` (⚠️ **KHÔNG tính** các **mục con** `1. Thửa đất` … `6. Ghi chú` nằm trong mục `II.` của mẫu cũ); ngược lại coi là **mẫu cũ (6 chữ số)**.
+
+Mọi lần áp ngoại lệ này đều đặt `loai_mau` tương ứng và thêm `canh_bao` ghi rõ không quan sát được mã QR. **TUYỆT ĐỐI KHÔNG cắt serial xuống 6 chữ số chỉ vì không nhìn thấy mã QR.**
+
+**Quy tắc đọc & tự kiểm tra serial (bắt buộc):**
+1. **Đếm số chữ số sau khi đọc.** Mẫu QR mà đếm được **ít hơn 8 chữ số** → chắc chắn đọc thiếu, **phải soi lại góc dưới-trái trang 1 và đọc lại cho đủ 8 chữ số**. Nguyên nhân hay gặp: (a) **bỏ mất số `0` đứng đầu** (`AA 06654954` → đọc nhầm thành `AA 6654954` hoặc `AA 665495`); (b) dãy số in giãn cách thành cụm (`0665 4954`) nên bỏ sót một cụm; (c) 2 số cuối sát mép giấy hoặc mờ. **Không tồn tại serial mẫu QR 6 chữ số** — tuyệt đối không áp khuôn 6 số của mẫu cũ lên mẫu QR; ngược lại cũng không kéo serial mẫu cũ thành 8 số.
+2. **Giữ nguyên mọi số `0` đứng đầu**; không cắt, không thêm, không đoán số mờ thành số khác. **TUYỆT ĐỐI KHÔNG bịa thêm chữ số cho đủ khuôn** — đọc thiếu thì báo bằng `canh_bao` (quy tắc 4), không bao giờ tự chế số.
+3. **Chuẩn hoá đầu ra:** `<CHỮ CÁI IN HOA> <CHỮ SỐ>` — đúng một khoảng trắng giữa phần chữ và phần số; bỏ dấu chấm/gạch/khoảng trắng nằm trong phần số (`AA 0665.4954` → `AA 06654954`; `ca332417` → `CA 332417`).
+4. **Tự kiểm tra trước khi xuất JSON:** `loai_mau = "mau_qr"` ⇔ phần số của `so_serial` có **đúng 8 ký tự số**; mẫu cũ ⇔ **đúng 6 ký tự số**. Nếu đã đọc lại mà vẫn lệch khuôn → **áp dụng quy tắc 6 TRƯỚC** (đối chiếu tên file/thư mục); **chỉ khi** tên file/thư mục cũng không có chuỗi serial dùng được thì mới điền giá trị đọc được, **hạ `do_tin_cay`** và **bắt buộc** thêm `canh_bao` theo đúng khuôn ở Nguyên tắc 4, VD `"so_serial (trang 1): mẫu QR nhưng chỉ đọc được 6/8 chữ số, cần đối chiếu PDF gốc – đọc được: AA 332417"`.
+5. **Không nhầm serial với:** `Số vào sổ cấp GCN` (VD `CH 00324`, `CH03730` — đó là `ky_so_vao_so`); mã vạch 13 số ở mặt 4 mẫu cũ; số thửa / số tờ bản đồ; số CMND/CCCD; số quyết định.
+6. **Đối chiếu với tên file được gửi / tên thư mục nguồn** (chuỗi khớp dạng serial, VD `BX 037034`, `CK 123056`, `AA 33241723`, `AA_06654954`):
+   - ⚠️ **Kiểm tra BẮT BUỘC, chạy TRƯỚC và KHÔNG phụ thuộc `loai_mau`:** nếu serial đọc trên giấy chỉ có **6 chữ số** mà tên file/thư mục lại có chuỗi **cùng phần chữ cái + 8 chữ số** → gần như chắc chắn đây là **mẫu QR bị phân loại nhầm và đã đọc thiếu 2 số**. Phải **soi lại góc dưới-trái trang 1**, sửa `loai_mau = "mau_qr"`, lấy serial **8 chữ số** và thêm `canh_bao`. (Không có phép kiểm này thì cả chuỗi cứu hộ bên dưới sẽ không bao giờ chạy, vì 6 chữ số luôn "đủ khuôn" của mẫu cũ.)
+   - Serial đọc trên giấy **đủ số chữ số theo mẫu** → dùng giá trị trên giấy; nếu khác tên file → thêm `canh_bao` nêu cả hai giá trị.
+   - Serial đọc trên giấy **THIẾU hoặc THỪA chữ số** so với khuôn của mẫu, nhưng có chuỗi trong **tên file** (ưu tiên tên file hơn tên thư mục) thoả **CẢ BA**: cùng phần chữ cái, đủ số chữ số theo mẫu, **và chứa trọn dãy số đã đọc được trên giấy như một chuỗi con** (hoặc ngược lại, dãy trên giấy chứa trọn dãy trong tên file khi giấy đọc THỪA) → **lấy theo tên file** và thêm `canh_bao` ghi rõ nguồn. Nếu không thoả đủ ba điều kiện (VD nhiều GCN dùng chung tiền tố `AA`, `CA`, `BD`…) thì **KHÔNG được thay** — giữ giá trị đọc trên giấy và cảnh báo, tránh gán nhầm serial của GCN khác.
+   - Không đọc được serial trên giấy → tìm chuỗi khớp dạng serial trong **TÊN FILE trước** (chỉ dùng **tên thư mục** khi tên file không có), và chuỗi đó phải có **đúng số chữ số theo `loai_mau`** đã xác định ở Bước 1. Thoả thì **bắt buộc điền**, không được trả `null`, kèm `canh_bao` ghi rõ nguồn. Nếu chỉ có tên thư mục và thư mục đó chứa **nhiều GCN** thì **KHÔNG lấy** (dễ gán nhầm) → `null` + `canh_bao`. Cả giấy lẫn tên file/thư mục đều không có → `null` + `canh_bao`.
+
+### 4.2 Số vào sổ, cụm ký & loại GCN
+
 - `ky_so_vao_so`: số vào sổ cấp GCN (VD `CH03730`, `CN00.383`). Khi chuẩn hoá **chỉ loại bỏ dấu chấm `.` và khoảng trắng**, **giữ nguyên mọi ký tự khác** (gạch chéo `/`, gạch ngang `-`, chữ tiếng Việt `Đ`…). VD `CH.04.1.4.  8` → `CH04148`. **Mẫu QR:** dòng `Số vào sổ cấp Giấy chứng nhận: …` (thường viết tay) nằm ở **cuối trang cuối cùng** của tài liệu, sau bảng mục `6. Những thay đổi…` — không phải gần phần chủ sử dụng như mẫu cũ.
 - `ky_ngay_vao_so`: ngày vào sổ (nếu có). **Chuẩn hoá về định dạng `dd/MM/yyyy`** (xem quy tắc ngày bên dưới).
 - **`ky_ngay_ky_gcn` + `ky_nguoi_ky` — thường là 1 CỤM KÝ nằm sát nhau**, xác định cụm này trước rồi tách 2 trường. Nhận diện cụm ký qua các dấu hiệu đi liền nhau: **địa danh + ngày tháng năm** (VD `<địa danh>, ngày 02 tháng 4 năm 2026`) → **tên cơ quan cấp** (VD `CHI NHÁNH VĂN PHÒNG ĐĂNG KÝ ĐẤT ĐAI …`) → chức danh (VD `GIÁM ĐỐC`) → **dấu mộc tròn đỏ + chữ ký** → **họ tên người ký** in bên dưới.
@@ -233,7 +263,13 @@ Chuẩn hoá tên đọc được rồi tra bảng. Khớp đúng tên → đi�
 
 ## BẢNG MÃ NGUỒN GỐC SỬ DỤNG ĐẤT (tra nội dung nguồn gốc → mã `ma_ngsd`)
 
-Chuẩn hoá nội dung đọc được rồi tra bảng. Khớp đúng → điền mã không cần cảnh báo; khớp gần đúng → mã gần nhất + `canh_bao`. Nhiều nguồn gốc trong một mục đích → ghép nhiều mã bằng `; `.
+Bảng dưới đây là **danh mục ĐẦY ĐỦ và DUY NHẤT** được phép dùng, lấy đúng theo sheet `DM_NguonGocSuDungDat`
+của khuôn Excel `Excel_FormMau_v5.xlsx`. **Chỉ được xuất một trong các mã liệt kê ở đây** — không dùng
+mã ngoài bảng, không tự sinh mã mới.
+
+Chuẩn hoá nội dung đọc được rồi tra bảng. Khớp đúng → điền mã không cần cảnh báo; khớp gần đúng → mã gần nhất
+trong bảng + `canh_bao`; **không khớp được dòng nào trong bảng** → `ma_ngsd = null`, vẫn giữ nguyên văn nội dung
+ở `ten_ngsd` và thêm `canh_bao`. Nhiều nguồn gốc trong một mục đích → ghép nhiều mã bằng `; `.
 
 | Mã | Nội dung nguồn gốc |
 |---|---|
@@ -245,25 +281,21 @@ Chuẩn hoá nội dung đọc được rồi tra bảng. Khớp đúng → đi�
 | `DG-KTT` | Nhà nước giao đất không thu tiền sử dụng đất |
 | `DG-QL` | Nhà nước giao đất để quản lý |
 | `DT-KCN` | Thuê đất của doanh nghiệp đầu tư hạ tầng khu công nghiệp, khu kinh tế, khu công nghệ cao |
-| `DT-KCN-THN` | Thuê đất trả tiền hàng năm của doanh nghiệp đầu tư hạ tầng khu công nghiệp, khu kinh tế, khu công nghệ cao |
+| `DT-KCN-THN` | Thuê đất trả tiền hàng năm của doanh nghiệp đầu tư hạ tầng khu công nghiệp, khi kinh tế, khu công nghệ cao |
 | `DT-KCN-TML` | Thuê đất trả tiền một lần của doanh nghiệp đầu tư hạ tầng khu công nghiệp, khu kinh tế, khu công nghệ cao |
-| `NCQ-1` | Nhận chuyển quyền sử dụng đất do giải quyết tranh chấp đất |
-| `NCQ-2` | Nhận chuyển quyền sử dụng đất do trúng đấu giá đất |
-| `NCQ-3` | Nhận chuyển quyền sử dụng đất do xử lý nợ thế chấp đất |
-| `NCQ-4` | Nhận chuyển quyền sử dụng đất do giải quyết khiếu nại hoặc tố cáo |
-| `NCQ-5` | Nhận chuyển quyền sử dụng đất do thực hiện quyết định hoặc bản án của Tòa án nhân dân |
-| `NCQ-6` | Nhận chuyển quyền sử dụng đất do thực hiện quyết định thi hành án |
-| `NCQ-7` | Nhận chuyển đổi quyền sử dụng đất |
-| `NCQ-8` | Nhận chuyển nhượng quyền sử dụng đất |
-| `NCQ-9` | Nhận thừa kế quyền sử dụng đất |
-| `NCQ-10` | Nhận tặng cho quyền sử dụng đất |
-| `NCQ-11` | Nhận góp vốn quyền sử dụng đất |
-| `NCQ-12` | Nhận chuyển quyền sử dụng đất do kết quả hòa giải thành |
-| `NCQ-13` | Nhận chuyển quyền sử dụng đất |
-| `NCQ-14` | Nhận chuyển quyền sử dụng đất theo kết quả đấu giá |
-| `NCQ-15` | Phân chia quyền sử dụng đất |
-| `NCQ-16` | Nhận quyền sử dụng đất theo quyết định chia tách, sát nhập tổ chức |
-| `NCQ-17` | Nhận quyền sử dụng đất từ quyền sử dụng chung của hộ gia đình |
+| `NCQ-1` | Nhận chuyển quyền do giải quyết tranh chấp đất |
+| `NCQ-2` | Nhận chuyển quyền do trúng đấu giá đất |
+| `NCQ-3` | Nhận chuyển quyền do xử lý nợ thế chấp đất |
+| `NCQ-4` | Nhận chuyển quyền do giải quyết khiếu nại hoặc tố cáo |
+| `NCQ-5` | Nhận chuyển quyền do thực hiện quyết định hoặc bản án của Tòa án nhân dân |
+| `NCQ-6` | Nhận chuyển quyền do thực hiện quyết định thi hành án |
+| `NCQ-7` | Nhận chuyển đổi đất |
+| `NCQ-8` | Nhận chuyển nhượng đất |
+| `NCQ-9` | Nhận thừa kế đất |
+| `NCQ-10` | Nhận tặng cho đất |
+| `CNQ` | Nhà nước công nhận quyền sử dụng đất |
+| `CN-CTT` | Nhà nước công nhận QSDĐ như Nhà nước giao đất có thu tiền sử dụng đất |
+| `CN-KTT` | Nhà nước công nhận QSDĐ như Nhà nước giao đất không thu tiền sử dụng đất |
 
 ---
 

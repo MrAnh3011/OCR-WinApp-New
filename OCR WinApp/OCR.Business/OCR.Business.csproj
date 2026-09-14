@@ -51,6 +51,8 @@
     <EmbeddedResource Include="NewGcn\PROMPT_TRICH_XUAT_GCN.md" />
     <!-- Prompt RIÊNG cho pipeline OCR GCN VietBD (không dùng chung với iLIS). -->
     <EmbeddedResource Include="VietBdGcn\PROMPT_TRICH_XUAT_GCN_VIETBD.md" />
+    <!-- Prompt trích CCCD/CMND từ file GTK của màn OCR GCN VBD-BN. -->
+    <EmbeddedResource Include="VbdBn\PROMPT_TRICH_XUAT_CCCD.md" />
   </ItemGroup>
 
   <Target Name="GenerateAiProviderSecret" BeforeTargets="CoreCompile">

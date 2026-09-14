@@ -1,12 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>OCR_WinApp</RootNamespace>
-    <Version>1.1.0</Version>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
-    <FileVersion>1.1.0.0</FileVersion>
+    <Version>1.4.2</Version>
+    <AssemblyVersion>1.4.2.0</AssemblyVersion>
+    <FileVersion>1.4.2.0</FileVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <!-- Icon EXE theo flavor (mặc định Sapphire = Flavor hiện tại trong appsettings).
          Build flavor khác: dotnet build -p:Flavor=Green (kèm sửa Flavor trong appsettings.json). -->
@@ -80,12 +80,21 @@
     <Content Include="..\OCR.Business\IlisUb\gcn-ilis-ub-rules.json" Link="gcn-ilis-ub-rules.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <!-- Template Excel mẫu cho Đất Uỷ Ban / OCR GCN iLIS, copy giữ nguyên cấu trúc thư mục. -->
-    <Content Include="Assets\Temp\Excel_FormMau_v3.xlsx">
+    <!-- Template Excel mẫu, copy giữ nguyên cấu trúc thư mục. -->
+    <!-- Khuôn iLIS v5 — dùng cho CẢ BA màn: OCR GCN iLIS, OCR GCN iLis-UB và Đất Uỷ Ban.
+         Đã bỏ hẳn Excel_FormMau_v3.xlsx (23/08/2026): v5 khác v3 đúng 2 cột header — Q (chỉ đổi câu chữ)
+         và DB "Năm cấp" → "Ngày cấp" (dd/MM/yyyy) — mà Đất Uỷ Ban KHÔNG ghi cột nào trong hai cột đó
+         (chỉ ghi B/F/I/S/T/U/V/AQ/AR/AZ/BA/BB/BC/BD/BE/BF/FW), nên xuất ra y nguyên như cũ.
+         Danh mục nguồn gốc: sheet DM_NguonGoc → DM_NguonGocSuDungDat. -->
+    <Content Include="Assets\Temp\Excel_FormMau_v5.xlsx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <!-- Template Excel của màn OCR GCN Việt Bản Đồ (khuôn khác hẳn iLIS). -->
     <Content Include="Assets\Temp\Excel_Template_VietBD.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- Template màn OCR GCN VBD-BN = clone template VietBD + sheet ThongTinCCCD (giấy tờ tuỳ thân từ file GTK). -->
+    <Content Include="Assets\Temp\Excel_Template_VietBD_BN.xlsx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

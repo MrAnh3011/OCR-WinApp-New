@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>PdfGroupTool</RootNamespace>
+    <AssemblyName>GomFilePdfTool</AssemblyName>
+    <Version>1.0.0</Version>
+    <Authors>GEOAIOT</Authors>
+    <Description>Tool gom file PDF (GCN/GT/GTK) theo serial va xuat bao cao Excel</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.104.2" />
+  </ItemGroup>
+
+</Project>
+

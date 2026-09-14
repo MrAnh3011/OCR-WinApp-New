@@ -15,7 +15,7 @@ public sealed class UyBanOptions
         "OCR WinApp", "Output");
 
     /// <summary>Đường dẫn Excel template (sheet "Data"), tương đối thư mục exe.</summary>
-    public string TemplateExcel { get; set; } = Path.Combine("Assets", "Temp", "Excel_FormMau_v3.xlsx");
+    public string TemplateExcel { get; set; } = Path.Combine("Assets", "Temp", "Excel_FormMau_v5.xlsx");
 
     /// <summary>Thư mục tạm ghi các PDF con (2 trang) đã tách trong lúc chạy (xoá &amp; tạo lại mỗi phiên).</summary>
     public string TempDir { get; set; } = Path.Combine(

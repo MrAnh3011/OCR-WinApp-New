@@ -454,6 +454,31 @@ internal static partial class Program
     {
         AssertSchemaOrdering(NewGcnResponseSchema.Instance, "iLIS");
         AssertSchemaOrdering(VietBdGcnResponseSchema.Instance, "VietBD");
+        VietBdSchemaRequiresSignatureFields();
+    }
+
+    /// <summary>
+    /// Bug thực tế 27/08/2026 (lô VanSon_Thu): model flash-lite trả null đồng loạt cụm ký
+    /// (`ky_so_vao_so`/`ky_ngay_ky_gcn`/`ky_nguoi_ky`) và `do_tin_cay` ở MỌI file, kể cả mẫu QR in rõ,
+    /// không kèm cảnh báo → Excel trống 3 cột O/R/S và mất tô màu cảnh báo. required + nullable buộc
+    /// model luôn khai báo các trường này (giá trị vẫn được null khi giấy thật sự không đọc được).
+    /// </summary>
+    private static void VietBdSchemaRequiresSignatureFields()
+    {
+        var root = (Dictionary<string, object>)VietBdGcnResponseSchema.Instance;
+        var properties = (Dictionary<string, object>)root["properties"];
+
+        var rows = (Dictionary<string, object>)properties["danh_sach_dong"];
+        var row = (Dictionary<string, object>)rows["items"];
+        var rowRequired = (string[])row["required"];
+        foreach (var field in new[] { "ky_so_vao_so", "ky_ngay_ky_gcn", "ky_nguoi_ky" })
+            AssertTrue(Array.IndexOf(rowRequired, field) >= 0,
+                $"Schema VietBD: `{field}` phải nằm trong required của dòng thửa (cột O/R/S của Excel).");
+
+        var info = (Dictionary<string, object>)properties["thong_tin_gcn"];
+        var infoRequired = (string[])info["required"];
+        AssertTrue(Array.IndexOf(infoRequired, "do_tin_cay") >= 0,
+            "Schema VietBD: `do_tin_cay` phải required, nếu không exporter mất cơ chế tô màu cảnh báo.");
     }
 
     private static void AssertSchemaOrdering(object schema, string screen)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 
 namespace OCR.Business.Models;
@@ -24,5 +24,5 @@ public sealed class NewGcnOptions
         "OCR WinApp", "newgcn-temp");
 
     /// <summary>Duong dan Excel template, tuong doi thu muc exe.</summary>
-    public string TemplateExcel { get; set; } = Path.Combine("Assets", "Temp", "Excel_FormMau_v3.xlsx");
+    public string TemplateExcel { get; set; } = Path.Combine("Assets", "Temp", "Excel_FormMau_v5.xlsx");
 }
